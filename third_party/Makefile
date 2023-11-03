@@ -6,6 +6,10 @@ softfloat:
 	SPECIALIZE_TYPE=RISCV SOFTFLOAT_OPTS="-fPIC -DSOFTFLOAT_ROUND_ODD -DINLINE_LEVEL=5 -DSOFTFLOAT_FAST_DIV32TO16 -DSOFTFLOAT_FAST_DIV64TO32" $(MAKE) -C softfloat/build/Linux-x86_64-GCC
 
 ramulator:
+	sed -i '10s/^/#/' ramulator/Makefile
+	sed '12!d' ramulator/Makefile | grep 'fPIC' > /dev/null || sed -i '12s/-Wall/& -fPIC/' ramulator/Makefile
+	sed -i '39s/libtool -static -o/ar rcs /' ramulator/Makefile
+	sed '40!d' ramulator/Makefile | grep 'ranlib' > /dev/null || sed -i '40i\	ranlib $$@' ramulator/Makefile
 	cd ramulator && git apply ../../miscs/patch/ramulator.patch 2> /dev/null; true
 	$(MAKE) -C ramulator libramulator.a
 

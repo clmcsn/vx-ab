@@ -1,0 +1,36 @@
+# syntax=docker/dockerfile:1
+# podman build -f vortex-KUL-fork/tools/docker/Dockerfile.dev --no-cache -t vortex:dev .
+FROM ubuntu:18.04
+RUN apt-get update
+
+#getting basic tools and dependencies
+RUN apt-get -y install build-essential wget vim python3
+RUN echo "alias python='python3'" >> ~/.bashrc
+RUN ln -s /usr/bin/python3 /usr/bin/python
+RUN mkdir /vx-ab
+ADD ./vx-ab /vx-ab
+WORKDIR /vx-ab
+RUN chmod +x ./ci/toolchain_install.sh
+RUN ./ci/toolchain_install.sh --all
+RUN echo "export PATH='/opt/verilator/bin:${PATH}'" >> ~/.bashrc
+RUN echo "export VERILATOR_ROOT='/opt/verilator/'" >> ~/.bashrc
+RUN echo "export export RISCV_TOOLCHAIN_PATH=/opt/riscv-gnu-toolchain/" >> ~/.bashrc
+
+#installing dependencies required for compilation
+RUN apt-get -y install uuid-dev libhwloc-dev software-properties-common
+#glibc++ version of UBUNTU 18.04 is too old, so we need to install a newer version
+RUN add-apt-repository ppa:ubuntu-toolchain-r/test
+RUN apt-get update
+RUN apt-get upgrade -y
+RUN apt-get -y install libstdc++6
+
+ENV PATH="/opt/verilator/bin:${PATH}"
+ENV VERILATOR_ROOT=/opt/verilator/
+ENV RISCV_TOOLCHAIN_PATH=/opt/riscv-gnu-toolchain/
+RUN make
+WORKDIR ..
+RUN rm -rf ./vx-ab
+
+#installing dependencies required for other tools and python
+#RUN apt-get -y install libtinfo5 python3-pip libboost-all-dev libopenblas-dev
+#RUN pip3 install numpy pyyaml Cython pandas matplotlib seaborn #pyarrow
