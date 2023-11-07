@@ -2,7 +2,6 @@ language: cpp
 dist: bionic
 os: linux
 compiler: gcc
-addons:
     apt:
         sources:
         - ubuntu-toolchain-r-test
